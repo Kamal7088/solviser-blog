@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import BlogCard from "@/components/BlogCard";
 import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
