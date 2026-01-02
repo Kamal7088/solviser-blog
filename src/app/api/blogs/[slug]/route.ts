@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
 
 export async function DELETE(
-  req: Request,
+  _req: Request,
   { params }: { params: { slug: string } }
 ) {
   await connectDB();
