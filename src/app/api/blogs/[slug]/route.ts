@@ -4,12 +4,11 @@ import Blog from "@/models/Blog";
 
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: { slug: string } }
 ) {
-  const { slug } = await params; // ✅ VERY IMPORTANT
-
   await connectDB();
-  await Blog.findOneAndDelete({ slug });
+
+  await Blog.findOneAndDelete({ slug: params.slug });
 
   return NextResponse.json({
     success: true,
