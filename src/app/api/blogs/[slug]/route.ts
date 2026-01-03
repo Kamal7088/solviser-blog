@@ -3,16 +3,38 @@ import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
 
 export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  req: Request,
+  { params }: { params: { slug: string } }
 ) {
-  const { slug } = await params; // ✅ VERY IMPORTANT
+  try {
+    await connectDB();
 
-  await connectDB();
-  await Blog.findOneAndDelete({ slug });
+    const { slug } = params;
 
-  return NextResponse.json({
-    success: true,
-    message: "Blog deleted successfully",
-  });
+    if (!slug) {
+      return NextResponse.json(
+        { success: false, message: "Slug missing" },
+        { status: 400 }
+      );
+    }
+
+    const deleted = await Blog.findOneAndDelete({ slug });
+
+    if (!deleted) {
+      return NextResponse.json(
+        { success: false, message: "Blog not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Blog deleted successfully",
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, message: "Delete failed" },
+      { status: 500 }
+    );
+  }
 }
