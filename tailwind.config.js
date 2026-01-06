@@ -23,6 +23,6 @@ module.exports = {
   },
 
   plugins: [
-    require("@tailwindcss/typography"), // ✅ RICH TEXT SUPPORT
+    require("@tailwindcss/typography"), // ✅ WORDPRESS STYLE BLOG SUPPORT
   ],
 };

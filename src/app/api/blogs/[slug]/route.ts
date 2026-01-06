@@ -1,28 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Blog from "@/models/Blog";
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
-) {
+type Params = {
+  params: Promise<{ slug: string }>; // ✅ params is Promise
+};
+
+export async function DELETE(req: Request, { params }: Params) {
   try {
+    const { slug } = await params; // ✅ FIX HERE
+
     await connectDB();
 
-    const { slug } = await params;
-
-    if (!slug) {
-      return NextResponse.json(
-        { success: false, message: "Slug missing" },
-        { status: 400 }
-      );
-    }
-
-    const deleted = await Blog.findOneAndDelete({ slug });
+    const deleted = await Blog.findOneAndDelete({
+      slug, // ✅ schema ke according (blog_slug ❌, slug ✅)
+    });
 
     if (!deleted) {
       return NextResponse.json(
-        { success: false, message: "Blog not found" },
+        { message: "Blog not found" },
         { status: 404 }
       );
     }
@@ -33,7 +29,7 @@ export async function DELETE(
     });
   } catch (error) {
     return NextResponse.json(
-      { success: false, message: "Delete failed" },
+      { message: "Delete failed" },
       { status: 500 }
     );
   }

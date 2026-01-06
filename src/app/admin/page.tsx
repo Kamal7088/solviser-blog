@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Editor from "@/components/Editor";
 
 export default function AdminPage() {
   const [title, setTitle] = useState("");
@@ -18,26 +19,30 @@ export default function AdminPage() {
     await fetch("/api/blogs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, content }),
+      body: JSON.stringify({
+        title,
+        content, // 🔥 Editor ka HTML yahin ja raha hai
+      }),
     });
 
     setTitle("");
     setContent("");
     setLoading(false);
+
     alert("Blog Published Successfully");
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="w-full max-w-3xl bg-surface rounded-2xl shadow-xl border border-border p-8">
-        
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-4xl bg-surface rounded-2xl shadow-xl border border-border p-8">
+
         {/* Header */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-primary">
             Create New Blog
           </h1>
           <p className="text-textMuted mt-2">
-            Publish insights, updates and stories for Solviser users
+            Publish insights, updates and stories
           </p>
         </div>
 
@@ -50,24 +55,19 @@ export default function AdminPage() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter blog title"
-            className="w-full px-4 py-3 rounded-xl bg-background border border-border text-textPrimary
-            focus:outline-none focus:ring-2 focus:ring-primary transition"
+            className="w-full px-4 py-3 rounded-xl bg-background border border-border
+            text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
 
-        {/* Content */}
+        {/* ✅ CONTENT – TEXTAREA REMOVED, EDITOR ADDED */}
         <div className="mb-8">
           <label className="block mb-2 text-sm text-textSecondary">
             Blog Content
           </label>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Write your blog content here..."
-            rows={8}
-            className="w-full px-4 py-3 rounded-xl bg-background border border-border text-textPrimary
-            focus:outline-none focus:ring-2 focus:ring-primary transition resize-none"
-          />
+
+          {/* 🔥 WORDPRESS-LIKE EDITOR */}
+          <Editor content={content} onChange={setContent} />
         </div>
 
         {/* Action */}
