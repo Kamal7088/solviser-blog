@@ -5,3 +5,12 @@
 body {
   @apply bg-background text-textPrimary;
 }
+.btn {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #e5e7eb;
+  font-size: 14px;
+}
+.btn:hover {
+  background: #d1d5db;
+}

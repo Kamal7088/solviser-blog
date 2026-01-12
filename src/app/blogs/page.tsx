@@ -1,35 +1,36 @@
-export const dynamic = "force-dynamic";
-
-import { connectDB } from "@/lib/db";
-import Blog from "@/models/Blog";
+import prisma from "@/lib/prisma";
 import BlogCard from "@/components/BlogCard";
-import { slugify } from "@/lib/slugify";
 
 export default async function BlogsPage() {
-  await connectDB();
-
-  const blogsFromDb = await Blog.find().lean();
-
-  const blogs = blogsFromDb.map((blog: any) => {
-    const safeSlug = blog.slug || slugify(blog.title);
-
-    return {
-      id: blog._id.toString(),
-      title: blog.title,
-      slug: safeSlug,          // ✅ NEVER undefined now
-      excerpt: blog.excerpt || "",
-    };
+  const blogs = await prisma.blog.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      excerpt: true,
+      author: true,
+      createdAt: true,
+    },
   });
 
   return (
-    <div className="p-10">
-      <h1 className="text-3xl mb-8">Blogs</h1>
+    <section className="min-h-screen px-6 py-16 max-w-6xl mx-auto">
+      <h1 className="text-4xl font-bold mb-10 text-center">
+        Latest Blogs
+      </h1>
 
-      <div className="grid grid-cols-3 gap-6">
-        {blogs.map((blog) => (
-          <BlogCard key={blog.id} blog={blog} />
-        ))}
-      </div>
-    </div>
+      {blogs.length === 0 ? (
+        <p className="text-center text-gray-400">
+          No blogs published yet.
+        </p>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {blogs.map((blog) => (
+            <BlogCard key={blog.id} blog={blog} />
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

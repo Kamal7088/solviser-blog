@@ -1,34 +1,56 @@
 import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
-import Blog from "@/models/Blog";
+import prisma from "@/lib/prisma";
 import { slugify } from "@/lib/slugify";
 
 export async function POST(req: Request) {
-  await connectDB();
+  try {
+    const body = await req.json();
 
-  // 🔒 Existing fields + new fields
-  const { title, content, excerpt, tags = [], category = "" } =
-    await req.json();
+    const title = body.title?.trim();
+    const content = body.content;
+    const excerpt = body.excerpt || null;
+    const author = body.author?.trim() || "Admin";
+    const featuredImage = body.featuredImage || null;
+    const seoTitle = body.seoTitle || null;
+    const seoDescription = body.seoDescription || null;
 
-  // 🔒 SAME SLUG LOGIC (UNCHANGED)
-  let baseSlug = slugify(title);
-  let slug = baseSlug;
-  let count = 1;
+    if (!title || !content) {
+      return NextResponse.json(
+        { error: "Title and content required" },
+        { status: 400 }
+      );
+    }
 
-  while (await Blog.findOne({ slug })) {
-    slug = `${baseSlug}-${count}`;
-    count++;
+    // 🔥 base slug
+    let slug = slugify(title);
+
+    // 🔥 Make slug unique
+    let counter = 1;
+    while (await prisma.blog.findUnique({ where: { slug } })) {
+      slug = `${slugify(title)}-${counter}`;
+      counter++;
+    }
+
+    const blog = await prisma.blog.create({
+      data: {
+        title,
+        slug,
+        excerpt,
+        content,
+        author,
+        featuredImage,
+        seoTitle,
+        seoDescription,
+      },
+    });
+
+    return NextResponse.json(blog, { status: 201 });
+
+  } catch (error) {
+    console.error("Create Blog Error:", error);
+    return NextResponse.json(
+      { error: "Blog create failed" },
+      { status: 500 }
+    );
   }
-
-  // 🔥 Create blog with extra features
-  const blog = await Blog.create({
-    title,
-    slug,
-    content,      // HTML from Quill (images + links)
-    excerpt,
-    tags,         // NEW
-    category,     // NEW
-  });
-
-  return NextResponse.json(blog, { status: 201 });
 }

@@ -1,27 +1,59 @@
 import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
-import Blog from "@/models/Blog";
+import prisma from "@/lib/prisma";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
-export async function DELETE(req: Request, { params }: Props) {
-  const { slug } = await params; // ✅ IMPORTANT (Next 15+ fix)
+/* ======================
+   ✏️ UPDATE BLOG
+====================== */
+export async function PUT(req: Request, { params }: Props) {
+  try {
+    const { slug } = await params; // ✅ MUST await
+    const body = await req.json();
 
-  await connectDB();
+    const updatedBlog = await prisma.blog.update({
+      where: { slug },
+      data: {
+        title: body.title,
+        excerpt: body.excerpt,
+        content: body.content,
+        author: body.author,
+      },
+    });
 
-  const deleted = await Blog.findOneAndDelete({ slug }); // ✅ FIX
-
-  if (!deleted) {
     return NextResponse.json(
-      { success: false, message: "Blog not found" },
-      { status: 404 }
+      { success: true, data: updatedBlog },
+      { status: 200 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, message: "Blog update failed" },
+      { status: 500 }
     );
   }
+}
 
-  return NextResponse.json({
-    success: true,
-    message: "Blog deleted successfully",
-  });
+/* ======================
+   🗑️ DELETE BLOG
+====================== */
+export async function DELETE(req: Request, { params }: Props) {
+  try {
+    const { slug } = await params; // ✅ MUST await
+
+    await prisma.blog.delete({
+      where: { slug },
+    });
+
+    return NextResponse.json(
+      { success: true },
+      { status: 200 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, message: "Blog delete failed" },
+      { status: 500 }
+    );
+  }
 }

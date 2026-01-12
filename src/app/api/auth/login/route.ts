@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Admin from "@/models/Admin";
 import bcrypt from "bcryptjs";
 import { signToken } from "@/lib/auth";
-import { connectDB } from "@/lib/db";
+import { connectDB } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   await connectDB();

@@ -1,87 +1,46 @@
-"use client";
+import prisma from "@/lib/prisma";
+import Link from "next/link";
 
-import { useState } from "react";
-import Editor from "@/components/Editor";
-
-export default function AdminPage() {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async () => {
-    if (!title || !content) {
-      alert("Title and Content required");
-      return;
-    }
-
-    setLoading(true);
-
-    await fetch("/api/blogs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title,
-        content, // 🔥 Editor ka HTML yahin ja raha hai
-      }),
-    });
-
-    setTitle("");
-    setContent("");
-    setLoading(false);
-
-    alert("Blog Published Successfully");
-  };
+export default async function AdminPage() {
+  const blogs = await prisma.blog.findMany({
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-4xl bg-surface rounded-2xl shadow-xl border border-border p-8">
+    <div className="max-w-5xl mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Admin Blogs</h1>
 
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-primary">
-            Create New Blog
-          </h1>
-          <p className="text-textMuted mt-2">
-            Publish insights, updates and stories
-          </p>
-        </div>
+        <Link
+          href="/admin/create"
+          className="px-4 py-2 bg-green-600 text-white rounded"
+        >
+          + Create Blog
+        </Link>
+      </div>
 
-        {/* Title */}
-        <div className="mb-6">
-          <label className="block mb-2 text-sm text-textSecondary">
-            Blog Title
-          </label>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter blog title"
-            className="w-full px-4 py-3 rounded-xl bg-background border border-border
-            text-textPrimary focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
-
-        {/* ✅ CONTENT – TEXTAREA REMOVED, EDITOR ADDED */}
-        <div className="mb-8">
-          <label className="block mb-2 text-sm text-textSecondary">
-            Blog Content
-          </label>
-
-          {/* 🔥 WORDPRESS-LIKE EDITOR */}
-          <Editor content={content} onChange={setContent} />
-        </div>
-
-        {/* Action */}
-        <div className="flex justify-center">
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="px-10 py-3 rounded-xl bg-primary text-white font-semibold
-            hover:bg-primaryHover active:scale-95 transition-all
-            focus:outline-none focus:ring-2 focus:ring-primary"
+      <div className="space-y-4">
+        {blogs.map((blog) => (
+          <div
+            key={blog.id}
+            className="border p-4 rounded flex justify-between items-center"
           >
-            {loading ? "Publishing..." : "Publish Blog"}
-          </button>
-        </div>
+            <div>
+              <h2 className="font-semibold">{blog.title}</h2>
+              <p className="text-sm text-gray-400">
+                ✍ {blog.author} ·{" "}
+                {new Date(blog.createdAt).toDateString()}
+              </p>
+            </div>
+
+            <Link
+              href={`/admin/edit/${blog.slug}`}
+              className="px-4 py-2 bg-orange-500 text-white rounded"
+            >
+              Edit
+            </Link>
+          </div>
+        ))}
       </div>
     </div>
   );
